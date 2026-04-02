@@ -10,20 +10,12 @@ export default function Home() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login');
+    if (user === null) {
+      // User is not logged in, redirect to login
+      router.replace('/login');
     }
   }, [user, router]);
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <div className="text-center">
-          <div className="text-white text-lg">Loading...</div>
-        </div>
-      </div>
-    );
-  }
-
-  return <DashboardLayout />;
+  // Show dashboard for logged in users, empty for unauthenticated (will redirect to login)
+  return user ? <DashboardLayout /> : <div />;
 }

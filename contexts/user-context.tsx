@@ -55,21 +55,22 @@ const DEMO_USERS: Record<string, User> = {
 };
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    // Try to restore session from localStorage
-    if (typeof window !== 'undefined') {
+  const [user, setUser] = React.useState<User | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    // Only restore session on client side
+    try {
       const storedUser = localStorage.getItem('currentUser');
       if (storedUser) {
-        try {
-          return JSON.parse(storedUser);
-        } catch {
-          return null;
-        }
+        setUser(JSON.parse(storedUser));
       }
+    } catch (error) {
+      console.error('Failed to restore user session:', error);
+    } finally {
+      setIsLoading(false);
     }
-    return null;
-  });
-  const [isLoading] = useState(false);
+  }, []);
 
   const login = useCallback((newUser: User) => {
     setUser(newUser);
@@ -115,7 +116,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     <UserContext.Provider
       value={{
         user,
-        isLoading,
+        isLoading: false,
         login,
         logout,
         getPermissions,
