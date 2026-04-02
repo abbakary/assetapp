@@ -21,7 +21,11 @@ const statusColors: Record<AssetStatus, string> = {
   disposed: "#dc2626",
 };
 
-export default function AssetMap({ assets, onAssetClick, center = [40.7128, -74.006], zoom = 13, selectedAsset }: AssetMapProps) {
+// Tanzania map defaults: Dar es Salaam area
+const TANZANIA_CENTER: [number, number] = [-6.8, 39.2];
+const TANZANIA_ZOOM = 6;
+
+export default function AssetMap({ assets, onAssetClick, center = TANZANIA_CENTER, zoom = TANZANIA_ZOOM, selectedAsset }: AssetMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);

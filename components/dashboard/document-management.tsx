@@ -27,6 +27,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mockDocuments, mockAssets } from "@/lib/mock-data";
+import FileStorage from "@/lib/file-storage";
+import { DocumentViewer } from "./document-viewer";
 import type { Document } from "@/lib/types";
 
 const documentTypeIcons: Record<string, React.ElementType> = {
@@ -145,7 +147,7 @@ interface UploadedFile {
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpload: (files: File[], assetId: string, documentType: string, tags: string[]) => void;
+  onUpload: (files: File[], assetId: string, documentType: string, tags: string[]) => Promise<void> | void;
 }
 
 function UploadModal({ isOpen, onClose, onUpload }: UploadModalProps) {
@@ -225,12 +227,12 @@ function UploadModal({ isOpen, onClose, onUpload }: UploadModalProps) {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedAsset || !documentType || files.length === 0) return;
-    
+
     const completedFiles = files.filter((f) => f.status === "completed").map((f) => f.file);
-    onUpload(completedFiles, selectedAsset, documentType, tags.split(",").map((t) => t.trim()).filter(Boolean));
-    
+    await onUpload(completedFiles, selectedAsset, documentType, tags.split(",").map((t) => t.trim()).filter(Boolean));
+
     // Cleanup
     files.forEach((f) => {
       if (f.preview) URL.revokeObjectURL(f.preview);
@@ -439,108 +441,8 @@ function UploadModal({ isOpen, onClose, onUpload }: UploadModalProps) {
   );
 }
 
-interface DocumentPreviewModalProps {
-  document: Document | null;
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-function DocumentPreviewModal({ document, isOpen, onClose }: DocumentPreviewModalProps) {
-  if (!isOpen || !document) return null;
-
-  const Icon = documentTypeIcons[document.type] || FileText;
-
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-card border border-border rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border bg-secondary/30">
-          <div className="flex items-center gap-3">
-            <Icon className={cn("h-6 w-6", documentTypeColors[document.type])} />
-            <div>
-              <h2 className="font-bold">{document.name}</h2>
-              <p className="text-xs text-muted-foreground">
-                Uploaded {document.uploadDate} | {document.size}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="p-2 hover:bg-secondary rounded-md transition-colors">
-              <Download className="h-5 w-5" />
-            </button>
-            <button onClick={onClose} className="p-2 hover:bg-secondary rounded-md transition-colors">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Preview Area */}
-        <div className="flex-1 overflow-auto p-6 flex items-center justify-center bg-secondary/20">
-          {document.type === "photo" ? (
-            <div className="max-w-full max-h-full">
-              <div className="bg-gradient-to-br from-secondary/50 to-secondary/30 rounded-lg p-8 text-center">
-                <Image className="h-32 w-32 mx-auto text-pink-400 mb-4" />
-                <p className="text-muted-foreground">Image Preview</p>
-                <p className="text-sm text-muted-foreground mt-1">{document.name}</p>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full min-h-[400px]">
-              <div className="border-b border-gray-200 pb-4 mb-4">
-                <h3 className="text-gray-800 font-bold text-lg">{document.name.replace(/\.[^/.]+$/, "")}</h3>
-                <p className="text-gray-500 text-sm">Document ID: {document.id}</p>
-              </div>
-              <div className="space-y-4 text-gray-700 text-sm">
-                <p>This is a preview of the document content.</p>
-                <p>
-                  In a production environment, this would display the actual document using a PDF viewer or
-                  document renderer depending on the file type.
-                </p>
-                <div className="bg-gray-100 rounded p-4 mt-6">
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Document Details</p>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <span className="text-gray-500">Type:</span>{" "}
-                      <span className="capitalize">{document.type}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Size:</span> {document.size}
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Uploaded:</span> {document.uploadDate}
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Asset ID:</span> {document.assetId}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between p-4 border-t border-border bg-secondary/30">
-          <div className="flex items-center gap-4 text-sm">
-            <span className="text-muted-foreground">
-              Linked to Asset: <span className="text-foreground font-medium">{document.assetId}</span>
-            </span>
-          </div>
-          <div className="flex gap-3">
-            <button className="px-4 py-2 rounded-md text-sm font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors flex items-center gap-2">
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </button>
-            <button className="px-4 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Download
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+// Document file data map for storing and retrieving uploaded file data
+const documentFileDataMap = new Map<string, string>();
 
 export function DocumentManagementDashboard() {
   const [selectedFolder, setSelectedFolder] = useState("all");
@@ -563,17 +465,36 @@ export function DocumentManagementDashboard() {
     setExpandedFolders(newExpanded);
   };
 
-  const handleUpload = (files: File[], assetId: string, documentType: string, tags: string[]) => {
-    const newDocs: Document[] = files.map((file, idx) => ({
-      id: `DOC-${Date.now()}-${idx}`,
-      assetId,
-      name: file.name,
-      type: documentType as Document["type"],
-      uploadDate: new Date().toISOString().split("T")[0],
-      size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-    }));
+  const handleUpload = async (files: File[], assetId: string, documentType: string, tags: string[]) => {
+    const newDocs: Document[] = [];
 
-    setDocuments((prev) => [...newDocs, ...prev]);
+    for (let idx = 0; idx < files.length; idx++) {
+      const file = files[idx];
+      const documentId = `DOC-${Date.now()}-${idx}`;
+
+      try {
+        // Store file in localStorage
+        const storedFile = await FileStorage.storeFile(file, assetId, documentType, documentId);
+
+        // Store the data URL for quick access
+        documentFileDataMap.set(documentId, storedFile.dataUrl);
+
+        newDocs.push({
+          id: documentId,
+          assetId,
+          name: file.name,
+          type: documentType as Document["type"],
+          uploadDate: storedFile.uploadDate,
+          size: storedFile.size,
+        });
+      } catch (error) {
+        console.error(`Failed to upload ${file.name}:`, error);
+      }
+    }
+
+    if (newDocs.length > 0) {
+      setDocuments((prev) => [...newDocs, ...prev]);
+    }
   };
 
   const filteredDocuments = documents.filter((doc) => {
@@ -879,8 +800,9 @@ export function DocumentManagementDashboard() {
 
       {/* Modals */}
       <UploadModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} onUpload={handleUpload} />
-      <DocumentPreviewModal
+      <DocumentViewer
         document={selectedDocument}
+        fileData={selectedDocument ? documentFileDataMap.get(selectedDocument.id) : undefined}
         isOpen={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
       />
