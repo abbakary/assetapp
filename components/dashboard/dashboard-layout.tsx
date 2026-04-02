@@ -2,16 +2,20 @@
 
 import { useState } from "react";
 import { Bell, Menu, RefreshCw } from "lucide-react";
+import { useUser } from "@/contexts/user-context";
 import { Sidebar } from "./sidebar";
 import { AssetRegistryDashboard } from "./asset-registry";
 import { AssetHierarchyDashboard } from "./asset-hierarchy";
 import { DocumentManagementDashboard } from "./document-management";
 import { LifecycleTrackingDashboard } from "./lifecycle-tracking";
+import { UserManagementDashboard } from "./user-management";
+import { SettingsDashboard } from "./settings";
 import { cn } from "@/lib/utils";
 
 export function DashboardLayout() {
   const [activeTab, setActiveTab] = useState("registry");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { hasPermission } = useUser();
 
   const renderContent = () => {
     switch (activeTab) {
@@ -23,6 +27,10 @@ export function DashboardLayout() {
         return <DocumentManagementDashboard />;
       case "lifecycle":
         return <LifecycleTrackingDashboard />;
+      case "users":
+        return <UserManagementDashboard />;
+      case "settings":
+        return <SettingsDashboard />;
       default:
         return <AssetRegistryDashboard />;
     }
@@ -38,6 +46,10 @@ export function DashboardLayout() {
         return "Document Management";
       case "lifecycle":
         return "Lifecycle Tracking";
+      case "users":
+        return "User Management";
+      case "settings":
+        return "Settings";
       default:
         return "Dashboard";
     }

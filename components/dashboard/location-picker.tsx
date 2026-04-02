@@ -11,6 +11,10 @@ interface LocationPickerProps {
   onLocationSelect: (lat: number, lng: number, address: string) => void;
 }
 
+// Tanzania map defaults
+const TANZANIA_CENTER: [number, number] = [-6.8, 39.2];
+const TANZANIA_ZOOM = 8;
+
 export default function LocationPicker({ latitude, longitude, onLocationSelect }: LocationPickerProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -19,14 +23,12 @@ export default function LocationPicker({ latitude, longitude, onLocationSelect }
   const [isSearching, setIsSearching] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const defaultCenter: [number, number] = [40.7128, -74.006];
-
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
     mapInstanceRef.current = L.map(mapRef.current, {
-      center: latitude && longitude ? [latitude, longitude] : defaultCenter,
-      zoom: 13,
+      center: latitude && longitude ? [latitude, longitude] : TANZANIA_CENTER,
+      zoom: latitude && longitude ? 13 : TANZANIA_ZOOM,
       zoomControl: true,
       attributionControl: false,
     });

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Building2,
@@ -14,6 +15,7 @@ import {
   Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/contexts/user-context";
 
 interface SidebarProps {
   activeTab: string;
@@ -50,6 +52,7 @@ const bottomMenuItems = [
     id: "users",
     label: "User Management",
     icon: Users,
+    requiredRole: "admin",
   },
   {
     id: "settings",
@@ -59,6 +62,47 @@ const bottomMenuItems = [
 ];
 
 export function Sidebar({ activeTab, onTabChange, collapsed = false, onToggleCollapse }: SidebarProps) {
+  const router = useRouter();
+  const { user, logout, hasPermission } = useUser();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  const getUserInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "bg-blue-500/20 text-blue-400";
+      case "staff_manager":
+        return "bg-amber-500/20 text-amber-400";
+      case "viewer":
+        return "bg-green-500/20 text-green-400";
+      default:
+        return "bg-gray-500/20 text-gray-400";
+    }
+  };
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "Admin";
+      case "staff_manager":
+        return "Manager";
+      case "viewer":
+        return "Viewer";
+      default:
+        return role;
+    }
+  };
   return (
     <aside
       className={cn(
@@ -137,6 +181,9 @@ export function Sidebar({ activeTab, onTabChange, collapsed = false, onToggleCol
         {bottomMenuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
+          const canAccess = !item.requiredRole || hasPermission("canAccessSettings") || (item.id === "users" && hasPermission("canManageUsers"));
+
+          if (!canAccess) return null;
 
           return (
             <button
@@ -158,22 +205,34 @@ export function Sidebar({ activeTab, onTabChange, collapsed = false, onToggleCol
 
       {/* User Section */}
       <div className="p-4 border-t border-sidebar-border">
-        <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
-          <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium text-primary">AM</span>
+        {user && (
+          <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className="w-8 h-8 rounded-full"
+            />
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-sidebar-foreground truncate">{user.name}</p>
+                <div className="flex items-center gap-1">
+                  <span className={cn("text-xs px-1.5 py-0.5 rounded", getRoleColor(user.role))}>
+                    {getRoleLabel(user.role)}
+                  </span>
+                </div>
+              </div>
+            )}
+            {!collapsed && (
+              <button
+                onClick={handleLogout}
+                className="p-1.5 rounded-md hover:bg-sidebar-accent transition-colors text-muted-foreground hover:text-sidebar-foreground"
+                title="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            )}
           </div>
-          {!collapsed && (
-            <div className="flex-1">
-              <p className="text-sm font-medium text-sidebar-foreground">Asset Manager</p>
-              <p className="text-xs text-muted-foreground">admin@company.com</p>
-            </div>
-          )}
-          {!collapsed && (
-            <button className="p-1.5 rounded-md hover:bg-sidebar-accent transition-colors">
-              <LogOut className="h-4 w-4 text-muted-foreground" />
-            </button>
-          )}
-        </div>
+        )}
       </div>
     </aside>
   );

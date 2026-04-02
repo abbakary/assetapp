@@ -32,6 +32,49 @@ export interface RolePermissions {
   canAccessSettings: boolean;
 }
 
+// Role-to-Permissions Mapping
+export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
+  admin: {
+    canViewAssets: true,
+    canCreateAssets: true,
+    canEditAssets: true,
+    canDeleteAssets: true,
+    canViewDocuments: true,
+    canUploadDocuments: true,
+    canDeleteDocuments: true,
+    canViewReports: true,
+    canExportReports: true,
+    canManageUsers: true,
+    canAccessSettings: true,
+  },
+  staff_manager: {
+    canViewAssets: true,
+    canCreateAssets: true,
+    canEditAssets: true,
+    canDeleteAssets: false,
+    canViewDocuments: true,
+    canUploadDocuments: true,
+    canDeleteDocuments: false,
+    canViewReports: true,
+    canExportReports: true,
+    canManageUsers: false,
+    canAccessSettings: false,
+  },
+  viewer: {
+    canViewAssets: true,
+    canCreateAssets: false,
+    canEditAssets: false,
+    canDeleteAssets: false,
+    canViewDocuments: true,
+    canUploadDocuments: false,
+    canDeleteDocuments: false,
+    canViewReports: true,
+    canExportReports: false,
+    canManageUsers: false,
+    canAccessSettings: false,
+  },
+};
+
 export interface Asset {
   id: string;
   name: string;

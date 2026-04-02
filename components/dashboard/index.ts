@@ -2,6 +2,8 @@ export { AssetRegistryDashboard } from "./asset-registry";
 export { AssetHierarchyDashboard } from "./asset-hierarchy";
 export { DocumentManagementDashboard } from "./document-management";
 export { LifecycleTrackingDashboard } from "./lifecycle-tracking";
+export { UserManagementDashboard } from "./user-management";
+export { SettingsDashboard } from "./settings";
 export { Sidebar } from "./sidebar";
 export { DashboardLayout } from "./dashboard-layout";
 export { AssetRegistrationForm } from "./asset-registration-form";
